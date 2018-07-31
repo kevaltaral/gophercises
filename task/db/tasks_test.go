@@ -12,7 +12,6 @@ func TestInit(t *testing.T) {
 	if err != nil {
 		t.Errorf("ERROR(in TestInit()):%s.............", err)
 	}
-
 }
 
 func TestCreateTask(t *testing.T) {
