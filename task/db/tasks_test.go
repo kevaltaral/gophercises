@@ -10,14 +10,14 @@ var err error
 func TestInit(t *testing.T) {
 	err := Init("/home/keval/tasks.db")
 	if err != nil {
-		t.Errorf("%s.............", err)
+		t.Errorf("ERROR(in TestInit()):%s.............", err)
 	}
 }
 
 func TestCreateTask(t *testing.T) {
 	_, err := CreateTask("new test task")
 	if err != nil {
-		t.Errorf("In createtask.........")
+		t.Errorf("ERROR(in TestCreateTask()):%s.............", err)
 	}
 }
 
@@ -26,7 +26,7 @@ func TestCreateTask(t *testing.T) {
 func TestDeleteTask(t *testing.T) {
 	err := DeleteTask(1)
 	if err != nil {
-		t.Errorf("%s........", err)
+		t.Errorf("ERROR(in TestDeleteTask()):%s.............", err)
 
 	}
 
