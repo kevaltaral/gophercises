@@ -36,10 +36,7 @@ func CreateTask(task string) (int, error) {
 		key := itob(id)
 		return b.Put(key, []byte(task))
 	})
-	if err != nil {
-		return -1, err
-	}
-	return id, nil
+	return id, err
 }
 
 func AllTasks() ([]Task, error) {
