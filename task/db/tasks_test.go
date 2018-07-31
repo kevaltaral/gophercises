@@ -31,3 +31,18 @@ func TestDeleteTask(t *testing.T) {
 	}
 
 }
+
+func TestAllTasks(t *testing.T) {
+	test, _ := AllTasks()
+	if test == nil {
+
+	}
+
+}
+
+func TestNInit(t *testing.T) {
+	err := Init("/home/kl/tasks.db")
+	if err == nil {
+		t.Errorf("%s.............", err)
+	}
+}

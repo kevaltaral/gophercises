@@ -68,10 +68,7 @@ func Transform(image io.Reader, ext string, numShapes int, opts ...func() []stri
 
 	// read out into a reader, return reader, delete out
 	b := bytes.NewBuffer(nil)
-	_, err = io.Copy(b, out)
-	if err != nil {
-		return nil, errors.New("primitive: Failed to copy output file into byte buffer")
-	}
+	io.Copy(b, out)
 	return b, nil
 }
 
@@ -84,10 +81,8 @@ func primitive(inputFile, outputFile string, numShapes int, args ...string) (str
 }
 
 func tempfile(prefix, ext string) (*os.File, error) {
-	in, err := ioutil.TempFile("", prefix)
-	if err != nil {
-		return nil, errors.New("primitive: failed to create temporary file")
-	}
+	in, _ := ioutil.TempFile("", prefix)
+
 	defer os.Remove(in.Name())
 	return os.Create(fmt.Sprintf("%s.%s", in.Name(), ext))
 }
