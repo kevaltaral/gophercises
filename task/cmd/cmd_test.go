@@ -11,6 +11,12 @@ import (
 	homedir "github.com/mitchellh/go-homedir"
 )
 
+/*func TestMain(t *testing.M) {
+	home, _ := homedir.Dir()
+	dbPath := filepath.Join(home, "tasks.db")
+	db.Init(dbPath)
+}*/
+
 func initial() {
 	home, _ := homedir.Dir()
 	dbPath := filepath.Join(home, "tasks.db")
@@ -19,7 +25,8 @@ func initial() {
 func TestAddCmd(t *testing.T) {
 	file, _ := os.Create("./test.txt")
 	defer file.Close()
-	//defer os.Remove(file.Name())
+	defer os.Remove(file.Name())
+
 	old := os.Stdout
 	os.Stdout = file
 	initial()
@@ -36,6 +43,7 @@ func TestAddCmd(t *testing.T) {
 		file.Seek(0, 0)
 		b, _ := ioutil.ReadFile(file.Name())
 		match, err := regexp.Match(test.expected, b)
+
 		if err != nil {
 			t.Error("error in regex")
 		}
@@ -44,5 +52,61 @@ func TestAddCmd(t *testing.T) {
 		}
 	}
 
+	os.Stdout = old
+
+}
+
+func TestListCLI(t *testing.T) {
+	file, _ := os.Create("./test.txt")
+	defer file.Close()
+	defer os.Remove(file.Name())
+	old := os.Stdout
+	os.Stdout = file
+	//initial()
+	args := []string{}
+	listCmd.Run(listCmd, args)
+	expected := `1. go to gym
+2. go to office
+3. clean dishes
+`
+	b, _ := ioutil.ReadFile(file.Name())
+	output := string(b)
+	if expected != output {
+		t.Error("error in list command")
+	}
+	os.Stdout = old
+}
+
+func TestDoCLI(t *testing.T) {
+	file, _ := os.Create("./test.txt")
+	defer file.Close()
+	defer os.Remove(file.Name())
+	old := os.Stdout
+	os.Stdout = file
+
+	//initial()
+	testSuit := []struct {
+		args     []string
+		expected string
+	}{
+		{args: []string{"1", "2", "3", "a"}, expected: `Failed to parse the argument: a
+Marked "1" as completed.
+Marked "2" as completed.
+Marked "3" as completed.
+`},
+		//{args: []string{"1"}, expected: "Invalid task number: 1"},
+	}
+	for i, test := range testSuit {
+		doCmd.Run(doCmd, test.args)
+		file.Seek(0, 0)
+		b, _ := ioutil.ReadFile(file.Name())
+		match, err := regexp.Match(test.expected, b)
+		if err != nil {
+			t.Error("error in regex")
+		}
+		if !match {
+			t.Errorf("error .......%d", i)
+		}
+	}
 	os.Stdout = old
 }
