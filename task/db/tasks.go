@@ -27,6 +27,9 @@ func Init(dbPath string) error {
 	})
 }
 
+func DBClose() {
+	db1.Close()
+}
 func CreateTask(task string) (int, error) {
 	var id int
 	err := db1.Update(func(tx *bolt.Tx) error {

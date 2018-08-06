@@ -25,7 +25,7 @@ var doCmd = &cobra.Command{
 		}
 		tasks, err := db.AllTasks()
 		if err != nil {
-			fmt.Println("Something went wrong:", err)
+			fmt.Println("Something went wrong:")
 			return
 		}
 		for _, id := range ids {
@@ -35,11 +35,13 @@ var doCmd = &cobra.Command{
 			}
 			task := tasks[id-1]
 			err := db.DeleteTask(task.Key)
-			if err != nil {
-				fmt.Printf("Failed to mark \"%d\" as completed. Error: %s\n", id, err)
-			} else {
-				fmt.Printf("Marked \"%d\" as completed.\n", id)
+			msg := fmt.Sprintf("Failed to mark \"%d\" as completed. Error: %s\n", id, err)
+
+			if err == nil {
+				msg = fmt.Sprintf("Marked \"%d\" as completed.\n", id)
+
 			}
+			fmt.Printf(msg)
 		}
 	},
 }

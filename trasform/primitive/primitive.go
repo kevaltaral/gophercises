@@ -44,6 +44,7 @@ func Transform(image io.Reader, ext string, numShapes int, opts ...func() []stri
 	}
 
 	in, err := tempfile("in_", ext)
+
 	if err != nil {
 		return nil, errors.New("primitive: failed to create temporary input file")
 	}

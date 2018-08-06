@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"html/template"
 	"io"
@@ -13,6 +12,12 @@ import (
 	"strconv"
 
 	"github.com/kevaltaral/gophercises/trasform/primitive"
+)
+
+var (
+	mytempfile  = tempfile
+	myCopy      = io.Copy
+	myGenImages = genImages
 )
 
 func main() {
@@ -50,12 +55,7 @@ func main() {
 			renderNumShapeChoices(w, r, f, ext, primitive.Mode(mode))
 			return
 		}
-		numShapes, err := strconv.Atoi(nStr)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		_ = numShapes
+
 		http.Redirect(w, r, "/img/"+filepath.Base(f.Name()), http.StatusFound)
 	})
 	mux.HandleFunc("/upload", func(w http.ResponseWriter, r *http.Request) {
@@ -66,13 +66,14 @@ func main() {
 		}
 		defer file.Close()
 		ext := filepath.Ext(header.Filename)[1:]
-		onDisk, err := tempfile("", ext)
+		onDisk, err := mytempfile("", ext)
+		//fmt.Println(err)
 		if err != nil {
 			http.Error(w, "Something went wrong", http.StatusInternalServerError)
 			return
 		}
 		defer onDisk.Close()
-		_, err = io.Copy(onDisk, file)
+		_, err = myCopy(onDisk, file)
 		if err != nil {
 			http.Error(w, "Something went wrong", http.StatusInternalServerError)
 			return
@@ -88,13 +89,12 @@ func main() {
 func renderNumShapeChoices(w http.ResponseWriter, r *http.Request, rs io.ReadSeeker, ext string, mode primitive.Mode) {
 	opts := []genOpts{
 		{N: 10, M: mode},
-		{N: 40, M: mode},
-		{N: 70, M: mode},
-		{N: 100, M: mode},
+		{N: 10, M: mode},
+		{N: 10, M: mode},
+		{N: 10, M: mode},
 	}
-	imgs, err := genImages(rs, ext, opts...)
+	imgs, err := myGenImages(rs, ext, opts...)
 	if err != nil {
-		panic(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -121,21 +121,18 @@ func renderNumShapeChoices(w http.ResponseWriter, r *http.Request, rs io.ReadSee
 		})
 	}
 	err = tpl.Execute(w, data)
-	if err != nil {
-		panic(err)
-	}
 }
 
 func renderModeChoices(w http.ResponseWriter, r *http.Request, rs io.ReadSeeker, ext string) {
 	opts := []genOpts{
-		{N: 60, M: primitive.ModeCircle},
-		{N: 60, M: primitive.ModeBeziers},
-		{N: 60, M: primitive.ModePolygon},
-		{N: 60, M: primitive.ModeCombo},
+		{N: 10, M: primitive.ModeCircle},
+		{N: 10, M: primitive.ModeBeziers},
+		{N: 10, M: primitive.ModePolygon},
+		{N: 10, M: primitive.ModeCombo},
 	}
-	imgs, err := genImages(rs, ext, opts...)
+	imgs, err := myGenImages(rs, ext, opts...)
 	if err != nil {
-		panic(err)
+
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -172,36 +169,38 @@ type genOpts struct {
 
 func genImages(rs io.ReadSeeker, ext string, opts ...genOpts) ([]string, error) {
 	var ret []string
+	var err error
 	for _, opt := range opts {
 		rs.Seek(0, 0)
 		f, err := genImage(rs, ext, opt.N, opt.M)
-		if err != nil {
-			return nil, err
+		if err == nil {
+			ret = append(ret, f)
 		}
-		ret = append(ret, f)
 	}
-	return ret, nil
+	return ret, err
 }
 
 func genImage(r io.Reader, ext string, numShapes int, mode primitive.Mode) (string, error) {
 	out, err := primitive.Transform(r, ext, numShapes, primitive.WithMode(mode))
-	if err != nil {
-		return "", err
+	var outFile *os.File
+	var fname string
+	if err == nil {
+		outFile, err = tempfile("", ext)
+		if err == nil {
+			defer outFile.Close()
+			io.Copy(outFile, out)
+			fname = outFile.Name()
+		}
 	}
-	outFile, err := tempfile("", ext)
-	if err != nil {
-		return "", err
-	}
-	defer outFile.Close()
-	io.Copy(outFile, out)
-	return outFile.Name(), nil
+	return fname, err
 }
 
 func tempfile(prefix, ext string) (*os.File, error) {
 	in, err := ioutil.TempFile("./img/", prefix)
-	if err != nil {
-		return nil, errors.New("main: failed to create temporary file")
+	var file *os.File
+	if err == nil {
+		defer os.Remove(in.Name())
+		file, err = os.Create(fmt.Sprintf("%s.%s", in.Name(), ext))
 	}
-	defer os.Remove(in.Name())
-	return os.Create(fmt.Sprintf("%s.%s", in.Name(), ext))
+	return file, err
 }

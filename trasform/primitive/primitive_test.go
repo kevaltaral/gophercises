@@ -16,5 +16,12 @@ func TestTransform(t *testing.T) {
 	}
 }
 
+func TestTempfile(t *testing.T) {
+	_, err := tempfile("", "")
+	if err != nil {
+		t.Error("error in tempfile")
+	}
+}
+
 //func tempfile(prefix, ext string) (*os.File, error)
 //func Testtempfile()

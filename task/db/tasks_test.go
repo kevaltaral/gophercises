@@ -46,3 +46,8 @@ func TestNInit(t *testing.T) {
 		t.Errorf("%s.............", err)
 	}
 }
+
+func TestA(t *testing.T) {
+	Init("/home/keval/task.db")
+	DBClose()
+}

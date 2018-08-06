@@ -1,9 +1,11 @@
 package cmd
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"testing"
 
@@ -21,7 +23,9 @@ func initial() {
 	home, _ := homedir.Dir()
 	dbPath := filepath.Join(home, "tasks.db")
 	db.Init(dbPath)
+
 }
+
 func TestAddCmd(t *testing.T) {
 	file, _ := os.Create("./test.txt")
 	defer file.Close()
@@ -94,7 +98,7 @@ Marked "1" as completed.
 Marked "2" as completed.
 Marked "3" as completed.
 `},
-		//{args: []string{"1"}, expected: "Invalid task number: 1"},
+		{args: []string{"1"}, expected: "Invalid task number: 1"},
 	}
 	for i, test := range testSuit {
 		doCmd.Run(doCmd, test.args)
@@ -107,6 +111,64 @@ Marked "3" as completed.
 		if !match {
 			t.Errorf("error .......%d", i)
 		}
+	}
+	os.Stdout = old
+}
+
+func TestNListCLI(t *testing.T) {
+	file, _ := os.Create("./test.txt")
+	defer file.Close()
+	//defer os.Remove(file.Name())
+	old := os.Stdout
+	os.Stdout = file
+	//initial()
+	args := []string{}
+	listCmd.Run(listCmd, args)
+	file.Seek(0, 0)
+	expected := "You have no tasks to complete!"
+	b, _ := ioutil.ReadFile(file.Name())
+	output := string(b)
+	os.Stdout = old
+	fmt.Printf(output)
+	if reflect.DeepEqual(expected, output) {
+		t.Error("error in list command")
+	}
+}
+
+func TestNegative(t *testing.T) {
+	db.DBClose()
+	file, _ := os.Create("./test.txt")
+	defer file.Close()
+	defer os.Remove(file.Name())
+	old := os.Stdout
+	os.Stdout = file
+	//initial()
+	args := []string{}
+	listCmd.Run(listCmd, args)
+	expected := "Something went wrong:"
+	b, _ := ioutil.ReadFile(file.Name())
+	output := string(b)
+	if reflect.DeepEqual(expected, output) {
+		t.Error("error in list command")
+	}
+	os.Stdout = old
+}
+
+func TestNegativeDo(t *testing.T) {
+	db.DBClose()
+	file, _ := os.Create("./test.txt")
+	defer file.Close()
+	defer os.Remove(file.Name())
+	old := os.Stdout
+	os.Stdout = file
+	//initial()
+	args := []string{}
+	doCmd.Run(listCmd, args)
+	expected := "Something went wrong:"
+	b, _ := ioutil.ReadFile(file.Name())
+	output := string(b)
+	if reflect.DeepEqual(expected, output) {
+		t.Error("error in do command")
 	}
 	os.Stdout = old
 }
