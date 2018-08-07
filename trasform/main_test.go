@@ -20,13 +20,13 @@ var testRoutes = []struct {
 	Path      string
 	ErrorCode int
 }{
-	//{Method: "GET", Path: "http://localhost:50000/", ErrorCode: 200},
+	{Method: "GET", Path: "http://localhost:50000/", ErrorCode: 200},
 	{Method: "POST", Path: "http://localhost:50000/upload", ErrorCode: 400},
 	{Method: "POST", Path: "http://localhost:50000/modify/827865555.png", ErrorCode: 400},
 	{Method: "POST", Path: "http://localhost:50000/modify/testme.png?mode= ", ErrorCode: 400},
-	{Method: "POST", Path: "http://localhost:50000/modify/index.jpeg?mode=4", ErrorCode: 200},
-	{Method: "POST", Path: "http://localhost:50000/modify/index.jpeg?", ErrorCode: 200},
-	{Method: "POST", Path: "http://localhost:50000/modify/index.jpeg?mode=4&n=1", ErrorCode: 302},
+	{Method: "POST", Path: "http://localhost:50000/modify/ke.png?mode=4", ErrorCode: 200},
+	{Method: "POST", Path: "http://localhost:50000/modify/ke.png?", ErrorCode: 200},
+	{Method: "POST", Path: "http://localhost:50000/modify/ke.png?mode=4&n=1", ErrorCode: 302},
 }
 
 var testRoutesNegative = []struct {
@@ -34,33 +34,15 @@ var testRoutesNegative = []struct {
 	Path      string
 	ErrorCode int
 }{
-	//{Method: "POST", Path: "http://localhost:50000/modify/index.jpeg?mode=4", ErrorCode: 500},
-	//{Method: "POST", Path: "http://localhost:50000/modify/index.jpeg?", ErrorCode: 500},
+	{Method: "POST", Path: "http://localhost:50000/modify/ke.png?mode=4", ErrorCode: 500},
+	{Method: "POST", Path: "http://localhost:50000/modify/ke.png", ErrorCode: 500},
 }
 
 /*func TestMain(m *testing.M) {
 
 	dashtest.ControlCoverage(m)
 }*/
-func TestRoutes(t *testing.T) {
-	go main()
-	time.Sleep(500)
-	oldGenImages := myGenImages
-	myGenImages = mockGenImages
-	for index, tt := range testRoutesNegative {
-		t.Run(strconv.Itoa(index), func(t *testing.T) {
-			executeRequestForRoutes(t, tt.Method, tt.Path, tt.ErrorCode)
-		})
-	}
-	myGenImages = oldGenImages
 
-	for index, tt := range testRoutes {
-		t.Run("TC_Negative_"+strconv.Itoa(index), func(t *testing.T) {
-			executeRequestForRoutes(t, tt.Method, tt.Path, tt.ErrorCode)
-		})
-	}
-
-}
 func executeRequestForRoutes(t *testing.T, method, path string, errorCode int) {
 	resp, err := followURL(method, path)
 	if err != nil {
@@ -78,7 +60,7 @@ func executeRequestForRoutes(t *testing.T, method, path string, errorCode int) {
 }
 func followURL(method, path string) (*http.Response, error) {
 	client := &http.Client{
-		Timeout: time.Second * 240,
+		Timeout: time.Second * 540,
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
 		},
@@ -97,8 +79,9 @@ func followURL(method, path string) (*http.Response, error) {
 }
 
 func TestUploadRequest(t *testing.T) {
-
-	filepath := "./index.jpeg"
+	go main()
+	time.Sleep(5000)
+	filepath := "./ke.png"
 
 	req, err := fileUploadRequest("http://localhost:50000/upload", "image", filepath)
 	client := &http.Client{
@@ -130,6 +113,24 @@ func TestUploadRequest(t *testing.T) {
 			t.Errorf("Got response %d for %s. Expected 200\n", resp.StatusCode, redirPath)
 		}
 
+	}
+
+}
+
+func TestRoutes(t *testing.T) {
+	oldGenImages := myGenImages
+	myGenImages = mockGenImages
+	for index, tt := range testRoutesNegative {
+		t.Run(strconv.Itoa(index), func(t *testing.T) {
+			executeRequestForRoutes(t, tt.Method, tt.Path, tt.ErrorCode)
+		})
+	}
+	myGenImages = oldGenImages
+
+	for index, tt := range testRoutes {
+		t.Run("TC_Negative_"+strconv.Itoa(index), func(t *testing.T) {
+			executeRequestForRoutes(t, tt.Method, tt.Path, tt.ErrorCode)
+		})
 	}
 
 }
@@ -194,7 +195,7 @@ func TestUploadFile_Negative(t *testing.T) {
 
 func executeUploadReqForNegativeTestCases(t *testing.T) {
 	//go main()
-	filepath := "./index.jpeg"
+	filepath := "./ke.png"
 	req, err := fileUploadRequest("http://localhost:50000/upload", "image", filepath)
 	client := &http.Client{
 		Timeout: time.Second * 240,

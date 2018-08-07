@@ -120,7 +120,7 @@ func renderNumShapeChoices(w http.ResponseWriter, r *http.Request, rs io.ReadSee
 			NumShapes: opts[i].N,
 		})
 	}
-	err = tpl.Execute(w, data)
+	tpl.Execute(w, data)
 }
 
 func renderModeChoices(w http.ResponseWriter, r *http.Request, rs io.ReadSeeker, ext string) {
@@ -156,10 +156,8 @@ func renderModeChoices(w http.ResponseWriter, r *http.Request, rs io.ReadSeeker,
 			Mode: opts[i].M,
 		})
 	}
-	err = tpl.Execute(w, data)
-	if err != nil {
-		panic(err)
-	}
+	tpl.Execute(w, data)
+
 }
 
 type genOpts struct {
